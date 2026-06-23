@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Best Wishes for your HSC Exam 🌷</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    background: #08000f;
+    display: flex; align-items: center; justify-content: center;
+    min-height: 100vh; overflow: hidden;
+  }
+  .scene { position: relative; width: 420px; height: 560px; }
+
+  .bg-glow {
+    position: absolute; bottom: 80px; left: 50%;
+    transform: translateX(-50%);
+    width: 380px; height: 200px;
+    background: radial-gradient(ellipse at 50% 80%,
+      rgba(160,30,70,0.45) 0%,
+      rgba(100,10,40,0.25) 40%,
+      transparent 75%);
+    border-radius: 50%;
+    animation: glowPulse 4s ease-in-out infinite;
+  }
+  @keyframes glowPulse {
+    0%,100% { opacity:.8; transform:translateX(-50%) scale(1); }
+    50% { opacity:1; transform:translateX(-50%) scale(1.06); }
+  }
+
+  .stars { position:absolute; inset:0; pointer-events:none; }
+  .star {
+    position:absolute; border-radius:50%; background:white; opacity:0;
+    animation: twinkle var(--d) ease-in-out infinite var(--dl);
+  }
+  @keyframes twinkle {
+    0%,100%{opacity:0;} 50%{opacity:var(--op);}
+  }
+
+  svg { position:absolute; inset:0; width:100%; height:100%; overflow:visible; }
+
+  .sparkle {
+    position:absolute; border-radius:50%; opacity:0; pointer-events:none;
+    animation: sparkUp var(--sd) ease-out infinite var(--sdl);
+  }
+  @keyframes sparkUp {
+    0%   { opacity:0; transform:translate(0,0) scale(.2); }
+    25%  { opacity:.9; }
+    100% { opacity:0; transform:translate(var(--sx),var(--sy)) scale(.1); }
+  }
+
+  .title {
+    position:absolute; top:16px; width:100%; text-align:center;
+    color:rgba(255,190,205,.5); font:13px/1 serif; letter-spacing:3.5px;
+    text-transform:uppercase; opacity:0;
+    animation: fadeIn 2s ease forwards 5.5s;
+  }
+  @keyframes fadeIn { to{opacity:1;} }
+</style>
+</head>
+<body>
+<div class="scene">
+  <div class="bg-glow"></div>
+  <div class="stars" id="stars"></div>
+  <div id="sparkles"></div>
+  <svg viewBox="0 0 420 560" id="svgRoot">
+    <defs>
+      <!-- STEM -->
+      <linearGradient id="sG" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0%" stop-color="#3a7a3a"/>
+        <stop offset="50%" stop-color="#5cb85c"/>
+        <stop offset="100%" stop-color="#2d6a2d"/>
+      </linearGradient>
+      <!-- LEAF -->
+      <linearGradient id="lG" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%" stop-color="#6abf6a"/>
+        <stop offset="100%" stop-color="#2a6a2a"/>
+      </linearGradient>
+      <!-- PETALS — 3 shades -->
+      <radialGradient id="pG1" cx="45%" cy="25%" r="65%">
+        <stop offset="0%"   stop-color="#ffb8cc"/>
+        <stop offset="45%"  stop-color="#e84070"/>
+        <stop offset="100%" stop-color="#a01840"/>
+      </radialGradient>
+      <radialGradient id="pG2" cx="45%" cy="25%" r="65%">
+        <stop offset="0%"   stop-color="#ffc5d5"/>
+        <stop offset="45%"  stop-color="#e8507e"/>
+        <stop offset="100%" stop-color="#b02050"/>
+      </radialGradient>
+      <radialGradient id="pG3" cx="45%" cy="25%" r="65%">
+        <stop offset="0%"   stop-color="#ffa8bf"/>
+        <stop offset="45%"  stop-color="#d83565"/>
+        <stop offset="100%" stop-color="#981535"/>
+      </radialGradient>
+      <!-- inner petal vein light -->
+      <radialGradient id="vG" cx="50%" cy="70%" r="55%">
+        <stop offset="0%"  stop-color="rgba(255,220,230,.55)"/>
+        <stop offset="100%" stop-color="rgba(255,150,180,.0)"/>
+      </radialGradient>
+
+      <!-- FILTERS -->
+      <filter id="bloomGlow" x="-40%" y="-40%" width="180%" height="180%">
+        <feGaussianBlur stdDeviation="5" result="b"/>
+        <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
+      <filter id="softGlow" x="-25%" y="-25%" width="150%" height="150%">
+        <feGaussianBlur stdDeviation="2.5" result="b"/>
+        <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
+    </defs>
+    <g id="garden"></g>
+  </svg>
+  <div class="title">Best wishes for you HSC exam 🌷</div>
+</div>
+
+<script>
+const NS = 'http://www.w3.org/2000/svg';
+const garden = document.getElementById('garden');
+
+/* ── Tulip data ──────────────────────────────────────────────
+   x, groundY = where stem exits soil
+   h = full stem height
+   grad = petal colour
+   delay = grow start (s)
+   phase/amp = sway params
+   leafSide = which side leaf goes (-1 left, 1 right)
+   leafT = how far up the stem the leaf is (0-1)
+   lean = slight lean angle for stem tip (deg)
+*/
+const TULIPS = [
+  { x:148, gY:460, h:200, grad:'pG1', delay:.1,  phase:0,   amp:5, leafSide:-1, leafT:.5,  lean:-4 },
+  { x:205, gY:455, h:228, grad:'pG2', delay:.55, phase:1.3, amp:6, leafSide: 1, leafT:.48, lean: 3 },
+  { x:265, gY:458, h:208, grad:'pG3', delay:1.0, phase:.55, amp:5, leafSide:-1, leafT:.52, lean:-3 },
+  { x:182, gY:468, h:162, grad:'pG1', delay:1.5, phase:2.1, amp:4, leafSide: 1, leafT:.55, lean: 5 },
+  { x:238, gY:470, h:150, grad:'pG2', delay:1.9, phase:.85, amp:4, leafSide:-1, leafT:.58, lean:-5 },
+  { x:298, gY:462, h:178, grad:'pG3', delay:.85, phase:1.8, amp:5, leafSide: 1, leafT:.5,  lean: 2 },
+];
+
+/* ── Draw a realistic tulip head ─────────────────────────────
+   Tulip = cup of 6 petals: 3 outer (wider, lower) + 3 inner (narrower, higher)
+   Each petal is a bezier "teardrop" pointing up, slightly fanned out
+*/
+function makeTulipBloom(cx, cy, grad) {
+  const g = document.createElementNS(NS,'g');
+
+  // outer 3 petals — wider, open angle
+  const outerAngles = [-30, 0, 30];
+  outerAngles.forEach(ang => {
+    const p = document.createElementNS(NS,'path');
+    // petal shape: narrow base, wide rounded top
+    const w = 15, h = 34;
+    const d = `M 0 0
+               C -${w*.4} -${h*.25} -${w} -${h*.55} -${w*.7} -${h}
+               C -${w*.3} -${h*1.18} ${w*.3} -${h*1.18} ${w*.7} -${h}
+               C ${w} -${h*.55} ${w*.4} -${h*.25} 0 0 Z`;
+    p.setAttribute('d', d);
+    p.setAttribute('fill', `url(#${grad})`);
+    p.setAttribute('transform', `translate(${cx},${cy}) rotate(${ang})`);
+    p.setAttribute('opacity','0.95');
+    g.appendChild(p);
+  });
+
+  // inner 3 petals — narrower, sit higher, lighter
+  const innerAngles = [-15, 15, 180]; // 180 = back center
+  const innerColors = ['pG2','pG1','pG2'];
+  innerAngles.forEach((ang,i) => {
+    const p = document.createElementNS(NS,'path');
+    const w = 11, h = 30;
+    const d = `M 0 0
+               C -${w*.4} -${h*.3} -${w} -${h*.6} -${w*.6} -${h}
+               C -${w*.2} -${h*1.15} ${w*.2} -${h*1.15} ${w*.6} -${h}
+               C ${w} -${h*.6} ${w*.4} -${h*.3} 0 0 Z`;
+    p.setAttribute('d', d);
+    p.setAttribute('fill', `url(#${innerColors[i]})`);
+    p.setAttribute('transform', `translate(${cx},${cy}) rotate(${ang})`);
+    p.setAttribute('opacity','0.88');
+    g.appendChild(p);
+  });
+
+  // inner vein / light sheen on front petal
+  const sheen = document.createElementNS(NS,'ellipse');
+  sheen.setAttribute('cx', cx-3); sheen.setAttribute('cy', cy-22);
+  sheen.setAttribute('rx','8'); sheen.setAttribute('ry','18');
+  sheen.setAttribute('fill','url(#vG)');
+  g.appendChild(sheen);
+
+  // receptacle (green base of flower)
+  const base = document.createElementNS(NS,'ellipse');
+  base.setAttribute('cx',cx); base.setAttribute('cy',cy+2);
+  base.setAttribute('rx','7'); base.setAttribute('ry','5');
+  base.setAttribute('fill','#4a8a3a'); base.setAttribute('opacity','.9');
+  g.appendChild(base);
+
+  return g;
+}
+
+/* ── Build & animate one tulip ───────────────────────────── */
+function buildTulip(t) {
+  const grp = document.createElementNS(NS,'g');
+  garden.appendChild(grp);
+
+  // Stem path (cubic bezier so it can lean/curve during sway)
+  const stemPath = document.createElementNS(NS,'path');
+  stemPath.setAttribute('stroke','url(#sG)');
+  stemPath.setAttribute('stroke-width','3.8');
+  stemPath.setAttribute('stroke-linecap','round');
+  stemPath.setAttribute('fill','none');
+  stemPath.setAttribute('filter','url(#softGlow)');
+  grp.appendChild(stemPath);
+
+  // Leaf group
+  const leafG = document.createElementNS(NS,'g');
+  leafG.style.opacity='0';
+  const leafPath = document.createElementNS(NS,'path');
+  leafPath.setAttribute('fill','url(#lG)');
+  leafPath.setAttribute('filter','url(#softGlow)');
+  leafG.appendChild(leafPath);
+  grp.appendChild(leafG);
+
+  // Bloom group
+  const bloomG = document.createElementNS(NS,'g');
+  bloomG.style.opacity='0';
+  bloomG.setAttribute('filter','url(#bloomGlow)');
+  const bloom = makeTulipBloom(0, 0, t.grad);
+  bloomG.appendChild(bloom);
+  grp.appendChild(bloomG);
+
+  /* ── Growth animation ── */
+  const GROW_DUR = 2400;
+  let t0 = null;
+  const tStart = t.delay * 1000;
+
+  function computeStemTip(progress, sway=0) {
+    // Stem grows upward from gY, slightly leaning by t.lean + sway
+    const ease = 1 - Math.pow(1-progress, 3);
+    const totalH = t.h * ease;
+    const leanX = (t.lean + sway) * (totalH / t.h);
+    const tipX = t.x + leanX;
+    const tipY = t.gY - totalH;
+    // control point for bezier — gives organic curve
+    const cpX = t.x + leanX * 0.4;
+    const cpY = t.gY - totalH * 0.6;
+    return { tipX, tipY, cpX, cpY, totalH };
+  }
+
+  function updateStem(progress, sway=0) {
+    const { tipX, tipY, cpX, cpY } = computeStemTip(progress, sway);
+    stemPath.setAttribute('d', `M ${t.x} ${t.gY} Q ${cpX} ${cpY} ${tipX} ${tipY}`);
+    return { tipX, tipY };
+  }
+
+  function updateLeaf(progress, sway=0) {
+    if (progress <= 0) return;
+    const lp = Math.min(progress * 1.6, 1);
+    const stemMid = computeStemTip(t.leafT, sway);
+    const lx = t.x + (stemMid.tipX - t.x) * t.leafT;
+    const ly = t.gY - t.h * t.leafT * (1 - Math.pow(1 - Math.min(1, progress*2), 3));
+    const side = t.leafSide;
+    const reach = 44 * lp;
+    const tipX2 = lx + side * reach;
+    const tipY2 = ly - 20 * lp;
+    leafPath.setAttribute('d',
+      `M ${lx} ${ly}
+       C ${lx + side*reach*.45} ${ly - 32*lp}  ${tipX2 + side*5} ${tipY2 - 8}  ${tipX2} ${tipY2}
+       C ${tipX2 - side*8} ${tipY2 + 5}  ${lx + side*12*lp} ${ly - 10*lp}  ${lx} ${ly} Z`
+    );
+    leafG.style.opacity = Math.min(lp*1.4, 1).toString();
+  }
+
+  function growFrame(ts) {
+    if (!t0) t0 = ts;
+    const elapsed = ts - t0 - tStart;
+    if (elapsed < 0) { requestAnimationFrame(growFrame); return; }
+
+    const raw = Math.min(elapsed / GROW_DUR, 1);
+
+    // Stem
+    const { tipX, tipY } = updateStem(raw);
+
+    // Leaf after 28% growth
+    if (raw > .28) updateLeaf((raw - .28) / .72);
+
+    // Bloom after 75% growth
+    if (raw > .75) {
+      const bp = (raw - .75) / .25;
+      const be = 1 - Math.pow(1 - bp, 2);
+      bloomG.style.opacity = be.toString();
+      const sc = .15 + .85 * be;
+      bloomG.setAttribute('transform',
+        `translate(${tipX} ${tipY}) scale(${sc})`);
+    }
+
+    if (raw < 1) { requestAnimationFrame(growFrame); }
+    else { startSway(); }
+  }
+
+  requestAnimationFrame(growFrame);
+
+  /* ── Sway animation ── */
+  function startSway() {
+    let s0 = null;
+    function swayFrame(ts) {
+      if (!s0) s0 = ts;
+      const elapsed = (ts - s0) / 1000;
+
+      // compound wind: slow base + faster ripple
+      const wind = Math.sin(elapsed * .85 + t.phase) * t.amp
+                 + Math.sin(elapsed * 1.9  + t.phase*.7) * t.amp * .28
+                 + Math.sin(elapsed * 3.1  + t.phase*1.3) * t.amp * .08;
+
+      const { tipX, tipY } = updateStem(1, wind);
+      updateLeaf(1, wind);
+
+      // bloom follows tip
+      const sc = 1;
+      bloomG.setAttribute('transform', `translate(${tipX} ${tipY}) scale(${sc})`);
+
+      requestAnimationFrame(swayFrame);
+    }
+    requestAnimationFrame(swayFrame);
+  }
+}
+
+// Build all
+TULIPS.forEach(buildTulip);
+
+// ── Stars ──
+const starsEl = document.getElementById('stars');
+for (let i=0; i<65; i++) {
+  const s = document.createElement('div');
+  s.className = 'star';
+  const sz = .8 + Math.random()*1.8;
+  s.style.cssText = `left:${Math.random()*100}%;top:${Math.random()*75}%;width:${sz}px;height:${sz}px`;
+  s.style.setProperty('--d', (2+Math.random()*4)+'s');
+  s.style.setProperty('--dl', (-Math.random()*6)+'s');
+  s.style.setProperty('--op', (.15+Math.random()*.75).toString());
+  starsEl.appendChild(s);
+}
+
+// ── Sparkles ──
+const sparklesEl = document.getElementById('sparkles');
+const sparkPos = [
+  [148,300],[175,275],[205,265],[235,278],[265,295],[298,310],
+  [160,330],[192,345],[222,335],[255,325],[285,340],[310,355],
+  [135,360],[168,375],[210,390],[250,370],[290,380],[175,310],
+];
+sparkPos.forEach(([lx,ly]) => {
+  const sp = document.createElement('div');
+  sp.className = 'sparkle';
+  const size = 3+Math.random()*4;
+  const hue = 340+Math.random()*30;
+  sp.style.cssText = `left:${lx}px;top:${ly}px;width:${size}px;height:${size}px;
+    background:radial-gradient(circle,hsl(${hue},100%,88%),hsl(${hue},80%,60%))`;
+  sp.style.setProperty('--sx', (Math.random()-0.5)*28+'px');
+  sp.style.setProperty('--sy', -(8+Math.random()*22)+'px');
+  sp.style.setProperty('--sd', (1.2+Math.random()*2.2)+'s');
+  sp.style.setProperty('--sdl', (3.5+Math.random()*5)+'s');
+  sparklesEl.appendChild(sp);
+});
+</script>
+</body>
+</html>
